@@ -330,46 +330,21 @@
 <div class="toast" id="toast"></div>
 
 <footer>
-  Data source: Google Sheets (Live) · Auto-refresh every 30s · NIELIT Ropar · FutureSkills PRIME · MeitY · NASSCOM
+  Data source: Google Sheets (Live) · Auto-refresh every 60s · NIELIT Ropar · FutureSkills PRIME · MeitY · NASSCOM
 </footer>
 
 <script>
 /* ═══════════════════════════════════════════════════════════
-   DATA SOURCE CONFIGURATION
-
-   Option A — Apps Script JSON (RECOMMENDED, zero cache):
-   Paste your Apps Script web app URL here and set
-   DATA_FORMAT to 'json'.
-
-   Option B — Google Visualization gviz (faster than /pub):
-   Uses the sheet ID with /gviz/tq endpoint. Needs
-   "Anyone with link → Viewer" sharing. ~15s cache.
-
-   Option C — /pub CSV (fallback, 5–15 min cache):
-   Original publish URL. Slow cache but no sharing needed.
+   DATA SOURCE — Google Sheets /pub CSV (live, no auth needed)
    ═══════════════════════════════════════════════════════════ */
 
-const DATA_FORMAT = 'gviz';   // ← Change to 'json' or 'gviz' or 'pub'
+const DATA_FORMAT = 'pub';
 
-/* ── Option A: Apps Script URL (set DATA_FORMAT = 'json') ── */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
-
-/* ── Option B: gviz URL (set DATA_FORMAT = 'gviz') ── */
-const SHEET_ID = '1X_Chv3xMYSZPQokTfH9ft5bI4Pba1fN1H-Uxj8xSXqc';
-const GVIZ_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
-
-/* ── Option C: /pub URL (set DATA_FORMAT = 'pub') ── */
 const PUB_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJFIajrDBmbNc7av2B5Cyi26sx7wDVC6Sb26__VqzY48rKpBf0H8Od4I8sbJN2AmJ_Ht5ODhxmSiVJ/pub?output=csv';
 
+function getDataSourceURL() { return PUB_URL; }
 
-/* Resolve the active URL based on format choice */
-function getDataSourceURL() {
-  if (DATA_FORMAT === 'json') return APPS_SCRIPT_URL;
-  if (DATA_FORMAT === 'gviz') return GVIZ_URL;
-  return PUB_URL;
-}
-
-const REFRESH_SEC = 30;  // shorter interval with gviz/json
+const REFRESH_SEC = 60;
 const PAGE_SIZES  = [25, 50, 100, 200];
 
 /* ── State ── */
@@ -419,19 +394,6 @@ function parseCSV(text) {
       obj.Qual = normalizeQual(obj['Highest/Current Qualification (with Branch /domain as applicable)'] || '');
       return obj;
     });
-}
-
-function parseJSON(text) {
-  try {
-    const arr = JSON.parse(text);
-    if (!Array.isArray(arr)) return [];
-    return arr.map(obj => {
-      const o = {};
-      for (const k in obj) o[k] = String(obj[k] ?? '');
-      o.Qual = normalizeQual(o['Highest/Current Qualification (with Branch /domain as applicable)'] || '');
-      return o;
-    }).filter(o => (o['Full Name'] || '').trim().length > 0);
-  } catch { return []; }
 }
 
 function normalizeQual(raw) {
@@ -588,9 +550,7 @@ function startCountdown() {
 function flashStat(id) { const el = document.getElementById(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 function updateSourceTag() {
   const tag = document.getElementById('source-tag');
-  if (DATA_FORMAT === 'json')     { tag.textContent = 'JSON Live'; tag.className = 'source-tag json'; }
-  else if (DATA_FORMAT === 'gviz') { tag.textContent = 'CSV /gviz'; tag.className = 'source-tag csv'; }
-  else                             { tag.textContent = 'CSV /pub';  tag.className = 'source-tag csv'; }
+  tag.textContent = 'CSV /pub'; tag.className = 'source-tag csv';
 }
 
 /* ═══════════════════════════════════
@@ -605,15 +565,13 @@ async function fetchData() {
   updateSourceTag();
 
   try {
-    const url = getDataSourceURL() + (DATA_FORMAT !== 'json' ? '&_t=' + Date.now() : '');
+    const url = PUB_URL + '&_t=' + Date.now();
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-
     if (text.length < 10) throw new Error('Empty response');
 
-    /* Parse based on format */
-    allRows = DATA_FORMAT === 'json' ? parseJSON(text) : parseCSV(text);
+    allRows = parseCSV(text);
     if (!allRows.length) throw new Error('Parsed 0 rows — check headers match expected columns');
 
     onSearch();
@@ -652,16 +610,11 @@ async function fetchData() {
     document.getElementById('pulse-dot').classList.add('error');
 
     if (!allRows.length) {
-      let hint = '';
-      if (DATA_FORMAT === 'gviz') hint = 'The /gviz endpoint requires "Anyone with the link → Viewer" sharing.<br>Go to Sheet → Share → General access → "Anyone with the link" → Viewer.<br><br>Or switch to <code>DATA_FORMAT = "pub"</code> in the script (slower cache, no sharing needed).';
-      else if (DATA_FORMAT === 'json') hint = 'Check your Apps Script web app URL is correct and deployed.<br>Ensure "Execute as: Me" and "Who has access: Anyone".';
-      else hint = 'Ensure "Publish to web" is active (File → Share → Publish to web → CSV).<br>Note: /pub has a 5–15 min CDN cache. For instant updates, use the Apps Script method.';
-
       document.getElementById('table-container').innerHTML = `
         <div class="error-box">
           <i class="fas fa-exclamation-triangle"></i>
           <span>Failed: ${esc(err.message)}</span>
-          <div class="hint">${hint}</div>
+          <div class="hint">Ensure "Publish to web" is active in Google Sheets (File → Share → Publish to web → CSV).<br>Note: /pub has a 5–15 min CDN cache. For instant updates, use an Apps Script web app.</div>
           <button class="btn" style="color:var(--accent);border-color:var(--accent);margin-top:8px;" onclick="fetchData()">
             <i class="fas fa-redo"></i> Retry
           </button>
