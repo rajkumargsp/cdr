@@ -3,633 +3,877 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOI Punjab Police — FSP Training Dashboard</title>
+<title>FSP Training — BOI Punjab Police</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #f5f4f0;
-    --surface: #ffffff;
-    --surface2: #f0ede8;
-    --border: #ddd9d0;
-    --text: #1a1a18;
-    --muted: #6b6860;
-    --accent: #1e3a5f;
-    --accent-light: #2a5298;
-    --accent2: #c8440a;
-    --accent2-light: #e06f3a;
-    --accent3: #1a6b3c;
-    --gold: #b8860b;
-    --danger: #b91c1c;
-    --font: 'IBM Plex Sans', sans-serif;
-    --mono: 'IBM Plex Mono', monospace;
-    --radius: 10px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
-  }
+:root {
+  --bg:        #0d1117;
+  --bg2:       #161b22;
+  --bg3:       #1c2330;
+  --border:    #30363d;
+  --border2:   #21262d;
+  --text:      #e6edf3;
+  --muted:     #7d8590;
+  --muted2:    #484f58;
+  --blue:      #388bfd;
+  --blue-dim:  #1f3a6e;
+  --green:     #3fb950;
+  --green-dim: #0d3321;
+  --orange:    #f0883e;
+  --orange-dim:#4a1f00;
+  --purple:    #a371f7;
+  --purple-dim:#2d1f5e;
+  --gold:      #d29922;
+  --gold-dim:  #3d2b00;
+  --red:       #f85149;
+  --font:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+  --mono:      'DM Mono', monospace;
+  --radius:    8px;
+  --radius-lg: 14px;
+}
 
-  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
 
-  header {
-    background: var(--accent); color: #fff; padding: 16px 32px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 3px solid var(--accent2); position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 12px rgba(30,58,95,0.25);
-  }
-  .header-left { display: flex; align-items: center; gap: 14px; }
-  .emblem {
-    width: 46px; height: 46px; background: rgba(255,255,255,0.12);
-    border: 1.5px solid rgba(255,255,255,0.3); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
-  }
-  .header-title { font-size: 16px; font-weight: 600; letter-spacing: 0.01em; }
-  .header-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; font-weight: 300; letter-spacing: 0.05em; text-transform: uppercase; }
-  .header-right { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-  .btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: none; border: 1px solid rgba(255,255,255,0.25);
-    cursor: pointer; padding: 6px 14px; border-radius: 6px;
-    font-size: 12px; font-family: var(--mono); color: rgba(255,255,255,0.8);
-    transition: all 0.2s; white-space: nowrap;
-  }
-  .btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); color: #fff; }
-  .btn:active { transform: scale(0.97); }
-  .btn.loading-state { pointer-events: none; opacity: 0.5; }
+/* ── HEADER ── */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex; align-items: stretch; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200;
+  box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(0,0,0,0.4);
+}
+.header-brand {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 0; border-right: 1px solid var(--border2); padding-right: 24px; margin-right: 4px;
+}
+.header-logo {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-size: 16px; color: #fff; box-shadow: 0 0 0 1px rgba(255,255,255,0.08);
+}
+.header-name { font-family: var(--display); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+.header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; font-weight: 300; }
+.header-nav { display: flex; align-items: center; gap: 2px; padding: 0 16px; }
+.nav-link {
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  color: var(--muted); cursor: pointer; transition: all 0.15s; border: none;
+  background: none; display: flex; align-items: center; gap: 6px;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-link.active { color: var(--blue); background: rgba(56,139,253,0.1); }
+.header-actions { display: flex; align-items: center; gap: 8px; padding: 12px 0; margin-left: auto; }
+.hbtn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px;
+  border-radius: 7px; font-size: 12px; font-family: var(--font); font-weight: 500;
+  cursor: pointer; transition: all 0.15s; border: 1px solid var(--border); white-space: nowrap;
+}
+.hbtn-ghost { background: transparent; color: var(--muted); }
+.hbtn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--text); border-color: var(--muted2); }
+.hbtn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.hbtn-primary:hover { background: #58a6ff; }
+.hbtn-primary:active, .hbtn-ghost:active { transform: scale(0.97); }
+.hbtn.loading { pointer-events: none; opacity: 0.5; }
+.hbtn .spin { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  .live-badge {
-    display: flex; align-items: center; gap: 7px;
-    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
-    padding: 6px 14px; border-radius: 20px;
-    font-size: 11px; font-family: var(--mono); color: rgba(255,255,255,0.75); white-space: nowrap;
-  }
-  .pulse {
-    width: 8px; height: 8px; border-radius: 50%; background: #4caf50; flex-shrink: 0;
-    box-shadow: 0 0 0 0 rgba(76,175,80,0.6); animation: pulse 2s infinite;
-  }
-  .pulse.error { background: var(--danger); box-shadow: 0 0 0 0 rgba(185,28,28,0.5); animation-name: pulse-error; }
-  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76,175,80,0.6); } 70% { box-shadow: 0 0 0 8px rgba(76,175,80,0); } 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); } }
-  @keyframes pulse-error { 0% { box-shadow: 0 0 0 0 rgba(185,28,28,0.5); } 70% { box-shadow: 0 0 0 6px rgba(185,28,28,0); } 100% { box-shadow: 0 0 0 0 rgba(185,28,28,0); } }
+.last-sync {
+  font-size: 11px; font-family: var(--mono); color: var(--muted);
+  padding: 5px 10px; border-radius: 6px; background: var(--bg3);
+  border: 1px solid var(--border2); white-space: nowrap;
+}
 
-  .main { padding: 24px 32px 32px; max-width: 1440px; margin: 0 auto; }
+/* ── MAIN ── */
+.main { padding: 28px 32px 48px; max-width: 1600px; margin: 0 auto; }
 
-  .status-bar {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
-    font-size: 12px; font-family: var(--mono); color: var(--muted);
-  }
-  .status-left { display: flex; align-items: center; gap: 12px; }
-  .countdown { color: var(--accent); font-weight: 500; }
+/* ── HERO BANNER ── */
+.hero {
+  background: linear-gradient(135deg, #0d1f3c 0%, #1a1230 50%, #0d1117 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(56,139,253,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-left {}
+.hero-eyebrow { font-size: 10px; font-family: var(--mono); color: var(--blue); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.hero-eyebrow::before { content: ''; display: inline-block; width: 16px; height: 1px; background: var(--blue); }
+.hero-title { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.hero-title span { color: var(--blue); }
+.hero-desc { font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 300; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.hero-badge {
+  font-size: 10px; font-family: var(--mono); padding: 3px 10px; border-radius: 20px;
+  border: 1px solid; letter-spacing: 0.04em; font-weight: 500;
+}
+.hero-badge.b1 { color: var(--blue);   border-color: var(--blue-dim);   background: rgba(56,139,253,0.08); }
+.hero-badge.b2 { color: var(--green);  border-color: var(--green-dim);  background: rgba(63,185,80,0.08); }
+.hero-badge.b3 { color: var(--orange); border-color: var(--orange-dim); background: rgba(240,136,62,0.08); }
+.hero-right { display: flex; gap: 16px; flex-shrink: 0; }
 
-  .source-tag {
-    font-size: 10px; padding: 2px 8px; border-radius: 4px;
-    font-family: var(--mono); font-weight: 500; letter-spacing: 0.03em;
-  }
-  .source-tag.json  { background: #d1fae5; color: #064e3b; }
-  .source-tag.csv   { background: #fef3c7; color: #92400e; }
+/* ── KPI CARDS ── */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.kpi {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 20px 22px;
+  position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.kpi:hover { border-color: var(--border); transform: translateY(-2px); }
+.kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+.kpi-value { font-family: var(--display); font-size: 36px; font-weight: 800; line-height: 1; }
+.kpi-value.flash { animation: kpi-flash 0.5s ease; }
+@keyframes kpi-flash { 0% { opacity: 0.2; transform: scale(0.9); } 60% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 5px; }
+.kpi-glow {
+  position: absolute; bottom: -30px; right: -30px;
+  width: 100px; height: 100px; border-radius: 50%;
+  pointer-events: none;
+}
+.kpi.blue   .kpi-value { color: var(--blue); }
+.kpi.green  .kpi-value { color: var(--green); }
+.kpi.orange .kpi-value { color: var(--orange); }
+.kpi.purple .kpi-value { color: var(--purple); }
+.kpi.gold   .kpi-value { color: var(--gold); }
+.kpi.blue   .kpi-glow  { background: radial-gradient(circle, rgba(56,139,253,0.12) 0%, transparent 70%); }
+.kpi.green  .kpi-glow  { background: radial-gradient(circle, rgba(63,185,80,0.12) 0%, transparent 70%); }
+.kpi.orange .kpi-glow  { background: radial-gradient(circle, rgba(240,136,62,0.12) 0%, transparent 70%); }
+.kpi.purple .kpi-glow  { background: radial-gradient(circle, rgba(163,113,247,0.12) 0%, transparent 70%); }
+.kpi.gold   .kpi-glow  { background: radial-gradient(circle, rgba(210,153,34,0.12) 0%, transparent 70%); }
+.delta { font-size: 10px; font-family: var(--mono); font-weight: 500; }
+.delta.up { color: var(--green); }
+.delta.same { color: var(--muted2); }
 
-  .stats-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-    gap: 14px; margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 18px 20px; position: relative; overflow: hidden;
-    box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s;
-  }
-  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-  .stat-card.blue::before   { background: var(--accent); }
-  .stat-card.orange::before { background: var(--accent2); }
-  .stat-card.green::before  { background: var(--accent3); }
-  .stat-card.gold::before   { background: var(--gold); }
-  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
-  .stat-value { font-size: 30px; font-weight: 700; font-family: var(--mono); line-height: 1; transition: all 0.3s; }
-  .stat-card.blue .stat-value   { color: var(--accent); }
-  .stat-card.orange .stat-value { color: var(--accent2); }
-  .stat-card.green .stat-value  { color: var(--accent3); }
-  .stat-card.gold .stat-value   { color: var(--gold); }
-  .stat-value.flash { animation: flash-val 0.6s ease; }
-  @keyframes flash-val { 0% { opacity: 0.3; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.06); } 100% { transform: scale(1); } }
-  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
-  .stat-delta { font-weight: 600; font-size: 11px; }
-  .stat-delta.up   { color: var(--accent3); }
-  .stat-delta.same { color: var(--muted); }
+/* ── CHARTS ── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-card {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius-lg); padding: 20px 22px;
+}
+.chart-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.chart-title { font-family: var(--display); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+.chart-title i { font-size: 12px; color: var(--muted); }
+.chart-total { font-size: 11px; font-family: var(--mono); color: var(--muted); }
 
-  .charts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
-  .chart-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
-  .chart-title i { font-size: 12px; opacity: 0.5; }
+/* ── TABLE SECTION ── */
+.table-section { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-lg); overflow: hidden; }
+.table-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.table-title-row { display: flex; align-items: center; gap: 10px; }
+.table-title { font-family: var(--display); font-size: 14px; font-weight: 700; }
+.row-badge {
+  font-size: 10px; font-family: var(--mono); padding: 2px 8px; border-radius: 20px;
+  background: rgba(56,139,253,0.12); color: var(--blue); border: 1px solid rgba(56,139,253,0.2);
+}
+.table-controls { display: flex; align-items: center; gap: 8px; }
+.search-wrap { position: relative; }
+.search-wrap i { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 12px; pointer-events: none; }
+.search {
+  padding: 7px 12px 7px 32px; border: 1px solid var(--border);
+  border-radius: 7px; font-size: 13px; font-family: var(--font);
+  background: var(--bg3); color: var(--text); width: 260px; outline: none; transition: all 0.15s;
+}
+.search:focus { border-color: var(--blue); background: var(--bg2); box-shadow: 0 0 0 3px rgba(56,139,253,0.12); }
+.search::placeholder { color: var(--muted2); }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--bg3); color: var(--muted); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.15s;
+}
+.icon-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(56,139,253,0.08); }
 
-  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; }
-  .table-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .table-toolbar-left { display: flex; align-items: center; gap: 10px; }
-  .table-toolbar-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-  .record-count { font-size: 11px; font-family: var(--mono); color: var(--accent); background: rgba(30,58,95,0.06); padding: 2px 8px; border-radius: 4px; }
-  .table-toolbar-right { display: flex; align-items: center; gap: 8px; }
-  .search-box {
-    padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: 6px;
-    font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text);
-    width: 260px; outline: none; transition: border-color 0.15s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%236b6860' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: 10px center;
-  }
-  .search-box:focus { border-color: var(--accent); background-color: #fff; }
-  .search-box::placeholder { color: #aaa; }
-  .icon-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg); cursor: pointer; color: var(--muted); font-size: 13px; transition: all 0.15s;
-  }
-  .icon-btn:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
-  .icon-btn:active { transform: scale(0.95); }
+/* filter pills */
+.filter-bar { padding: 10px 20px; border-bottom: 1px solid var(--border2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.filter-label { font-size: 10px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-right: 4px; }
+.fpill {
+  padding: 3px 12px; border-radius: 20px; font-size: 11px; font-family: var(--mono);
+  border: 1px solid var(--border2); background: var(--bg3); color: var(--muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.fpill:hover { border-color: var(--border); color: var(--text); }
+.fpill.active { background: rgba(56,139,253,0.12); border-color: rgba(56,139,253,0.3); color: var(--blue); }
 
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th {
-    background: var(--surface2); padding: 10px 14px; text-align: left;
-    font-size: 10px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border);
-    white-space: nowrap; cursor: pointer; user-select: none; transition: background 0.1s;
-  }
-  th:hover { background: #e8e5df; }
-  th .sort-icon { margin-left: 4px; font-size: 9px; opacity: 0.4; }
-  th.sorted .sort-icon { opacity: 1; color: var(--accent); }
-  td {
-    padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text);
-    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(30,58,95,0.02); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead { position: sticky; top: 0; z-index: 10; }
+th {
+  background: var(--bg3); padding: 10px 14px; text-align: left;
+  font-size: 10px; font-family: var(--mono); font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+  border-bottom: 1px solid var(--border2); white-space: nowrap;
+  cursor: pointer; user-select: none; transition: background 0.1s;
+}
+th:hover { background: var(--bg2); color: var(--text); }
+th.sorted { color: var(--blue); }
+th .si { margin-left: 4px; font-size: 8px; opacity: 0.4; }
+th.sorted .si { opacity: 1; }
+td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border2); color: var(--text);
+  max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: background 0.1s;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+.td-name { font-weight: 500; color: var(--text) !important; }
+.td-father { color: var(--muted) !important; font-size: 12px; }
+.td-email { color: var(--blue) !important; font-family: var(--mono); font-size: 11px; }
+.td-phone { font-family: var(--mono); font-size: 12px; color: var(--muted) !important; }
+.td-ts { font-family: var(--mono); font-size: 11px; color: var(--muted2) !important; }
+.td-sno { font-family: var(--mono); font-size: 11px; color: var(--muted2) !important; text-align: center; }
 
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--mono); }
-  .badge-m     { background: #dbeafe; color: #1e3a8a; }
-  .badge-f     { background: #fce7f3; color: #9d174d; }
-  .badge-other { background: #f3f4f6; color: #4b5563; }
-  .badge-qual  { background: #d1fae5; color: #064e3b; }
+/* badges */
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 20px; font-size: 10px; font-family: var(--mono); font-weight: 500; border: 1px solid; }
+.bm  { color: var(--blue);   background: rgba(56,139,253,0.1);   border-color: rgba(56,139,253,0.25); }
+.bf  { color: #f778ba;       background: rgba(247,120,186,0.1);  border-color: rgba(247,120,186,0.25); }
+.bo  { color: var(--muted);  background: rgba(125,133,144,0.1);  border-color: rgba(125,133,144,0.2); }
+.bq  { color: var(--green);  background: rgba(63,185,80,0.08);   border-color: rgba(63,185,80,0.2); }
+.bd  { color: var(--orange); background: rgba(240,136,62,0.08);  border-color: rgba(240,136,62,0.2); }
+.bn  { color: var(--muted2); background: rgba(72,79,88,0.2);     border-color: rgba(72,79,88,0.3); }
 
-  .pagination {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 20px; border-top: 1px solid var(--border);
-    font-size: 12px; color: var(--muted); font-family: var(--mono); flex-wrap: wrap; gap: 8px;
-  }
-  .page-btns { display: flex; gap: 4px; }
-  .page-btn {
-    padding: 5px 10px; border: 1px solid var(--border); border-radius: 5px;
-    background: var(--surface); cursor: pointer; font-size: 12px;
-    font-family: var(--mono); color: var(--muted); transition: all 0.15s;
-  }
-  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-  .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .page-btn:disabled { opacity: 0.35; pointer-events: none; }
-  .per-page-select {
-    padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px;
-    font-size: 12px; font-family: var(--mono); background: var(--bg); color: var(--text); cursor: pointer;
-  }
+/* pagination */
+.paginator {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-top: 1px solid var(--border2);
+  font-size: 12px; font-family: var(--mono); color: var(--muted); flex-wrap: wrap; gap: 8px;
+}
+.page-btns { display: flex; gap: 3px; }
+.pg {
+  padding: 5px 10px; border: 1px solid var(--border2); border-radius: 5px;
+  background: var(--bg3); cursor: pointer; font-size: 11px; font-family: var(--mono);
+  color: var(--muted); transition: all 0.12s;
+}
+.pg:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); background: rgba(56,139,253,0.08); }
+.pg.cur { background: var(--blue); color: #fff; border-color: var(--blue); }
+.pg:disabled { opacity: 0.3; pointer-events: none; }
+.per-page {
+  padding: 4px 8px; border: 1px solid var(--border2); border-radius: 5px;
+  font-size: 11px; font-family: var(--mono); background: var(--bg3); color: var(--text); cursor: pointer;
+}
 
-  .loading { display: flex; align-items: center; justify-content: center; height: 180px; color: var(--muted); font-size: 13px; font-family: var(--mono); gap: 10px; }
-  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* states */
+.state-box { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 60px 20px; color: var(--muted); text-align: center; }
+.state-box i { font-size: 32px; opacity: 0.4; }
+.state-box p { font-size: 13px; }
+.state-box small { font-size: 11px; color: var(--muted2); max-width: 380px; line-height: 1.7; }
+.spinner-ring { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
-  .error-box {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 8px; height: 180px; color: var(--muted); font-size: 13px;
-    font-family: var(--mono); text-align: center; padding: 20px;
-  }
-  .error-box i { font-size: 28px; color: var(--accent2); }
-  .error-box .hint { font-size: 11px; color: #999; max-width: 460px; line-height: 1.6; }
+/* toast */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  padding: 10px 18px; border-radius: 8px; font-size: 13px; font-family: var(--mono);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px;
+  transform: translateY(60px); opacity: 0; transition: all 0.25s ease;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast i { color: var(--green); }
 
-  .toast {
-    position: fixed; bottom: 24px; right: 24px;
-    background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 8px;
-    font-size: 13px; font-family: var(--mono); box-shadow: 0 6px 20px rgba(30,58,95,0.3);
-    transform: translateY(80px); opacity: 0; transition: all 0.3s ease; z-index: 200;
-  }
-  .toast.show { transform: translateY(0); opacity: 1; }
+footer { text-align: center; padding: 20px; font-size: 11px; font-family: var(--mono); color: var(--muted2); border-top: 1px solid var(--border2); margin-top: 8px; }
 
-  footer { text-align: center; padding: 18px; font-size: 11px; font-family: var(--mono); color: var(--muted); border-top: 1px solid var(--border); }
-  footer a { color: var(--accent); text-decoration: none; }
-  footer a:hover { text-decoration: underline; }
-
-  @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 700px) {
-    header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
-    .header-title { font-size: 14px; }
-    .main { padding: 16px; }
-    .charts-grid { grid-template-columns: 1fr; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .search-box { width: 100%; }
-    .table-toolbar { flex-direction: column; align-items: flex-start; }
-    .table-toolbar-right { width: 100%; }
-    .hide-mobile { display: none; }
-  }
-  @media print {
-    header { position: static; box-shadow: none; }
-    .btn, .icon-btn, .search-box, .pagination, .live-badge { display: none !important; }
-    .stat-card { break-inside: avoid; }
-  }
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 768px) {
+  header { padding: 0 16px; }
+  .hero { padding: 20px; flex-direction: column; }
+  .main { padding: 16px; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .search { width: 100%; }
+  .table-controls { flex-wrap: wrap; }
+  .hide-sm { display: none !important; }
+}
+@media print {
+  header, .hero-badges, .hbtn, .icon-btn, .paginator, .filter-bar, .search-wrap, .toast { display: none !important; }
+  body { background: #fff; color: #000; }
+  .bg2, .kpi, .chart-card, .table-section { background: #fff !important; border-color: #ccc !important; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-left">
-    <div class="emblem"><i class="fas fa-balance-scale"></i></div>
+  <div class="header-brand">
+    <div class="header-logo"><i class="fas fa-shield-halved"></i></div>
     <div>
-      <div class="header-title">FutureSkills PRIME — Training Dashboard</div>
-      <div class="header-sub">Bureau of Investigation · Punjab Police · NIELIT Ropar</div>
+      <div class="header-name">FutureSkills PRIME</div>
+      <div class="header-sub">BOI · Punjab Police · NIELIT Ropar</div>
     </div>
   </div>
-  <div class="header-right">
-    <button class="btn" onclick="exportCSV()" title="Download CSV">
-      <i class="fas fa-download"></i><span class="hide-mobile">Export</span>
-    </button>
-    <button class="btn" id="refresh-btn" onclick="fetchData()" title="Refresh now">
-      <i class="fas fa-sync-alt"></i><span class="hide-mobile">Refresh</span>
-    </button>
-    <div class="live-badge">
-      <div class="pulse" id="pulse-dot"></div>
-      <span id="last-update">Loading…</span>
-    </div>
+  <div class="header-nav hide-sm">
+    <button class="nav-link active"><i class="fas fa-table-cells"></i> Dashboard</button>
+    <button class="nav-link" onclick="document.querySelector('.table-section').scrollIntoView({behavior:'smooth'})"><i class="fas fa-list"></i> Registrations</button>
+  </div>
+  <div class="header-actions">
+    <span class="last-sync" id="last-sync">Not loaded</span>
+    <button class="hbtn hbtn-ghost" onclick="exportCSV()"><i class="fas fa-download"></i><span class="hide-sm">Export CSV</span></button>
+    <button class="hbtn hbtn-primary" id="refresh-btn" onclick="fetchData()"><i class="fas fa-rotate-right" id="refresh-icon"></i><span class="hide-sm">Refresh Data</span></button>
   </div>
 </header>
 
 <div class="main">
-  <div class="status-bar">
-    <div class="status-left">
-      <span id="status-msg">Connecting…</span>
-      <span class="source-tag csv" id="source-tag">CSV /pub</span>
-      <span class="countdown" id="countdown"></span>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Training Registration Dashboard</div>
+      <div class="hero-title">BOI Punjab Police<br><span>FSP Training</span> Registrations</div>
+      <div class="hero-desc">Live participant data from Google Sheets · NIELIT Ropar · MeitY / NASSCOM Initiative</div>
+      <div class="hero-badges">
+        <span class="hero-badge b1">FutureSkills PRIME</span>
+        <span class="hero-badge b2">NIELIT Ropar</span>
+        <span class="hero-badge b3">Bureau of Investigation</span>
+      </div>
     </div>
-    <span id="total-count" style="font-weight:500;"></span>
+    <div id="hero-kpi" style="display:flex;gap:16px;flex-shrink:0;"></div>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card blue">
-      <div class="stat-label">Total Registrations</div>
-      <div class="stat-value" id="s-total">—</div>
-      <div class="stat-sub"><span id="s-total-delta"></span>All participants</div>
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi blue">
+      <div class="kpi-label">Total Registrations</div>
+      <div class="kpi-value" id="k-total">—</div>
+      <div class="kpi-sub"><span id="k-delta"></span><span style="color:var(--muted2)">participants</span></div>
+      <div class="kpi-glow"></div>
     </div>
-    <div class="stat-card green">
-      <div class="stat-label">Male</div>
-      <div class="stat-value" id="s-male">—</div>
-      <div class="stat-sub"><span id="s-male-pct"></span></div>
+    <div class="kpi green">
+      <div class="kpi-label">Male</div>
+      <div class="kpi-value" id="k-male">—</div>
+      <div class="kpi-sub"><span id="k-male-pct" style="color:var(--green);font-family:var(--mono);font-size:11px;"></span></div>
+      <div class="kpi-glow"></div>
     </div>
-    <div class="stat-card orange">
-      <div class="stat-label">Female</div>
-      <div class="stat-value" id="s-female">—</div>
-      <div class="stat-sub"><span id="s-female-pct"></span></div>
+    <div class="kpi orange">
+      <div class="kpi-label">Female</div>
+      <div class="kpi-value" id="k-female">—</div>
+      <div class="kpi-sub"><span id="k-female-pct" style="color:var(--orange);font-family:var(--mono);font-size:11px;"></span></div>
+      <div class="kpi-glow"></div>
     </div>
-    <div class="stat-card gold">
-      <div class="stat-label">Designations</div>
-      <div class="stat-value" id="s-desig">—</div>
-      <div class="stat-sub">unique roles</div>
+    <div class="kpi purple">
+      <div class="kpi-label">Unique Designations</div>
+      <div class="kpi-value" id="k-desig">—</div>
+      <div class="kpi-sub"><span style="color:var(--muted2)">distinct roles</span></div>
+      <div class="kpi-glow"></div>
+    </div>
+    <div class="kpi gold">
+      <div class="kpi-label">Qualifications</div>
+      <div class="kpi-value" id="k-qual">—</div>
+      <div class="kpi-sub"><span style="color:var(--muted2)">distinct levels</span></div>
+      <div class="kpi-glow"></div>
     </div>
   </div>
 
+  <!-- CHARTS -->
   <div class="charts-grid">
     <div class="chart-card">
-      <div class="chart-title"><i class="fas fa-venus-mars"></i> Gender Split</div>
-      <div style="position:relative;height:210px;"><canvas id="chartGender"></canvas></div>
+      <div class="chart-head">
+        <div class="chart-title"><i class="fas fa-venus-mars"></i> Gender Split</div>
+        <span class="chart-total" id="ct-gender"></span>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="cGender"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title"><i class="fas fa-graduation-cap"></i> Qualification</div>
-      <div style="position:relative;height:210px;"><canvas id="chartQual"></canvas></div>
+      <div class="chart-head">
+        <div class="chart-title"><i class="fas fa-graduation-cap"></i> Qualifications</div>
+        <span class="chart-total" id="ct-qual"></span>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="cQual"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title"><i class="fas fa-id-badge"></i> Designation</div>
-      <div style="position:relative;height:210px;"><canvas id="chartDesig"></canvas></div>
+      <div class="chart-head">
+        <div class="chart-title"><i class="fas fa-id-badge"></i> Designations</div>
+        <span class="chart-total" id="ct-desig"></span>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="cDesig"></canvas></div>
     </div>
   </div>
 
-  <div class="table-card">
-    <div class="table-toolbar">
-      <div class="table-toolbar-left">
-        <span class="table-toolbar-title">All Registrations</span>
-        <span class="record-count" id="record-count">0</span>
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-head">
+      <div class="table-title-row">
+        <span class="table-title">All Registrations</span>
+        <span class="row-badge" id="row-badge">0</span>
       </div>
-      <div class="table-toolbar-right">
-        <input class="search-box" id="search-input" type="text"
-               placeholder="Search name, email, designation…"
-               oninput="onSearch()" aria-label="Search registrations">
-        <button class="icon-btn" onclick="clearSearch()" title="Clear search">
-          <i class="fas fa-times"></i>
-        </button>
+      <div class="table-controls">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input class="search" id="search" type="text" placeholder="Search name, email, designation, phone…" oninput="onSearch()">
+        </div>
+        <button class="icon-btn" onclick="clearSearch()" title="Clear"><i class="fas fa-xmark"></i></button>
+        <button class="icon-btn" onclick="window.print()" title="Print"><i class="fas fa-print"></i></button>
       </div>
     </div>
-    <div id="table-container">
-      <div class="loading"><div class="spinner"></div>Loading data…</div>
+
+    <!-- gender filter pills -->
+    <div class="filter-bar">
+      <span class="filter-label">Gender</span>
+      <span class="fpill active" onclick="setFilter('gender','all',this)">All</span>
+      <span class="fpill" onclick="setFilter('gender','male',this)">Male</span>
+      <span class="fpill" onclick="setFilter('gender','female',this)">Female</span>
+      <span class="filter-label" style="margin-left:10px;">Qual</span>
+      <span class="fpill active" id="qual-all" onclick="setFilter('qual','all',this)">All</span>
+      <span id="qual-pills"></span>
+    </div>
+
+    <div id="tbl-container">
+      <div class="state-box">
+        <i class="fas fa-cloud-arrow-down"></i>
+        <p>No data loaded yet</p>
+        <small>Click <strong>Refresh Data</strong> in the top-right corner to fetch the latest registrations from Google Sheets.</small>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><i class="fas fa-circle-check"></i><span id="toast-msg"></span></div>
 
 <footer>
-  Data source: Google Sheets (Live) · Auto-refresh every 60s · NIELIT Ropar · FutureSkills PRIME · MeitY · NASSCOM
+  FutureSkills PRIME · Bureau of Investigation, Punjab Police · NIELIT Ropar · MeitY · NASSCOM &nbsp;|&nbsp;
+  Manual refresh only · Data from Google Sheets /pub
 </footer>
 
 <script>
-/* ═══════════════════════════════════════════════════════════
-   DATA SOURCE — Google Sheets /pub CSV (live, no auth needed)
-   ═══════════════════════════════════════════════════════════ */
-
-const DATA_FORMAT = 'pub';
-
+/* ════════════════════════════════════
+   CONFIG
+   ════════════════════════════════════ */
 const PUB_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSJFIajrDBmbNc7av2B5Cyi26sx7wDVC6Sb26__VqzY48rKpBf0H8Od4I8sbJN2AmJ_Ht5ODhxmSiVJ/pub?output=csv';
 
-function getDataSourceURL() { return PUB_URL; }
-
-const REFRESH_SEC = 60;
-const PAGE_SIZES  = [25, 50, 100, 200];
+const PAGE_SIZES = [25, 50, 100, 200];
 
 /* ── State ── */
-let allRows = [], filteredRows = [], prevTotal = 0, charts = {};
-let sortCol = -1, sortDir = 1, currentPage = 1, pageSize = 50;
-let countdownId = null, countdownVal = REFRESH_SEC;
+let allRows = [], filteredRows = [], prevTotal = 0;
+let charts = {}, sortCol = -1, sortDir = 1;
+let currentPage = 1, pageSize = 50;
+let activeFilters = { gender: 'all', qual: 'all' };
 
-const COLS = [
-  { key: 'Full Name',                              label: 'Name',          w: '170px' },
-  { key: 'Father Name',                            label: 'Father',        w: '130px' },
-  { key: 'Gender',                                 label: 'Gender',        w: '70px'  },
-  { key: 'Qual',                                   label: 'Qualification', w: '150px' },
-  { key: 'Designation (if applicable)',            label: 'Designation',   w: '160px' },
-  { key: 'Email',                                  label: 'Email',         w: '190px' },
-  { key: 'Contact Number',                         label: 'Contact',       w: '120px' },
-  { key: 'Timestamp',                              label: 'Registered',    w: '110px' },
+/* All sheet columns — we'll detect them dynamically from headers */
+const FIXED_COLS = [
+  { key: '#',                                       label: '#',             w: '48px',  cls: 'td-sno'    },
+  { key: 'Timestamp',                               label: 'Timestamp',     w: '140px', cls: 'td-ts'     },
+  { key: 'Full Name',                               label: 'Full Name',     w: '180px', cls: 'td-name'   },
+  { key: 'Father Name',                             label: "Father's Name", w: '160px', cls: 'td-father' },
+  { key: 'Gender',                                  label: 'Gender',        w: '80px',  cls: ''          },
+  { key: 'Highest/Current Qualification (with Branch /domain as applicable)', label: 'Qualification', w: '170px', cls: '' },
+  { key: 'Qual',                                    label: 'Qual (short)',   w: '100px', cls: '' },
+  { key: 'Designation (if applicable)',             label: 'Designation',   w: '160px', cls: '' },
+  { key: 'Email',                                   label: 'Email',         w: '200px', cls: 'td-email'  },
+  { key: 'Contact Number',                          label: 'Contact',       w: '130px', cls: 'td-phone'  },
 ];
 
-/* ═══════════════════════════════════
-   PARSERS
-   ═══════════════════════════════════ */
+let dynamicCols = []; // built after first parse
+
+/* ════════════════════════════════════
+   CSV PARSER
+   ════════════════════════════════════ */
 function parseCSV(text) {
   const rows = [];
   let row = [], field = '', inQ = false;
   for (let i = 0; i < text.length; i++) {
-    const c = text[i], next = text[i + 1];
+    const c = text[i], nx = text[i+1];
     if (inQ) {
-      if (c === '"') { if (next === '"') { field += '"'; i++; } else inQ = false; }
+      if (c === '"') { if (nx === '"') { field += '"'; i++; } else inQ = false; }
       else field += c;
     } else {
       if (c === '"') inQ = true;
       else if (c === ',') { row.push(field); field = ''; }
-      else if (c === '\r' && next === '\n') { i++; row.push(field); field = ''; rows.push(row); row = []; }
+      else if (c === '\r' && nx === '\n') { i++; row.push(field); field = ''; rows.push(row); row = []; }
       else if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; }
       else field += c;
     }
   }
   if (field || row.length) { row.push(field); rows.push(row); }
-  if (rows.length < 2) return [];
+  if (rows.length < 2) return { headers: [], data: [] };
+
   const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, ''));
-  const ni = headers.indexOf('Full Name');
-  return rows.slice(1)
-    .filter(r => r.length >= headers.length && (r[ni >= 0 ? ni : 0] || '').trim().length > 0)
-    .map(r => {
-      const obj = {};
+  const nameIdx = headers.indexOf('Full Name');
+  const data = rows.slice(1)
+    .filter(r => r.length > 0 && (r[nameIdx >= 0 ? nameIdx : 0] || '').trim().length > 0)
+    .map((r, idx) => {
+      const obj = { '#': String(idx + 1) };
       headers.forEach((h, i) => obj[h] = (r[i] || '').trim().replace(/^"|"$/g, ''));
       obj.Qual = normalizeQual(obj['Highest/Current Qualification (with Branch /domain as applicable)'] || '');
       return obj;
     });
+  return { headers, data };
 }
 
 function normalizeQual(raw) {
   const s = raw.toLowerCase();
-  if (/m\.?tech/.test(s))     return 'M.Tech';
-  if (/m\.?sc/.test(s))      return 'M.Sc';
-  if (/mca/.test(s))         return 'MCA';
-  if (/m\.?a(?!\w)/.test(s)) return 'M.A';
-  if (/m\.?com/.test(s))     return 'M.Com';
-  if (/mba/.test(s))         return 'MBA';
-  if (/llb/.test(s))         return 'LLB';
-  if (/phd/.test(s))         return 'PhD';
-  if (/b\.?tech/.test(s))    return 'B.Tech';
-  if (/b\.?sc/.test(s))      return 'B.Sc';
-  if (/bca/.test(s))         return 'BCA';
-  if (/b\.?a(?!\w)/.test(s)) return 'B.A';
-  if (/b\.?com/.test(s))     return 'B.Com';
-  if (/diploma/.test(s))     return 'Diploma';
+  if (/m\.?tech/.test(s))    return 'M.Tech';
+  if (/m\.?sc/.test(s))     return 'M.Sc';
+  if (/mca/.test(s))        return 'MCA';
+  if (/m\.?a(?!\w)/.test(s))return 'M.A';
+  if (/m\.?com/.test(s))    return 'M.Com';
+  if (/mba/.test(s))        return 'MBA';
+  if (/llb/.test(s))        return 'LLB';
+  if (/phd/.test(s))        return 'PhD';
+  if (/b\.?tech/.test(s))   return 'B.Tech';
+  if (/b\.?sc/.test(s))     return 'B.Sc';
+  if (/bca/.test(s))        return 'BCA';
+  if (/b\.?a(?!\w)/.test(s))return 'B.A';
+  if (/b\.?com/.test(s))    return 'B.Com';
+  if (/diploma/.test(s))    return 'Diploma';
   if (/12th|12\s|\+2|intermediate|10\+2/.test(s)) return '12th';
   if (/10th|10\s|matric/.test(s)) return '10th';
-  return raw.length > 20 ? raw.substring(0, 18) + '…' : (raw || 'Other');
+  return raw.length > 22 ? raw.substring(0, 20) + '…' : (raw || 'Other');
 }
 
-/* ═══════════════════════════════════
+/* ════════════════════════════════════
    CHARTS
-   ═══════════════════════════════════ */
-function makeChart(id, type, labels, data, colors) {
+   ════════════════════════════════════ */
+function mkChart(id, type, labels, data, colors) {
   if (charts[id]) charts[id].destroy();
   const ctx = document.getElementById(id);
   if (!ctx || !data.length) return;
-  const total = data.reduce((a, b) => a + b, 0);
+  const total = data.reduce((a,b)=>a+b,0);
   charts[id] = new Chart(ctx, {
-    type, data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: type === 'doughnut' ? '#ffffff' : colors, borderWidth: type === 'doughnut' ? 2.5 : 1, borderRadius: type === 'bar' ? 4 : 0, maxBarThickness: 36 }] },
+    type,
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: type==='doughnut' ? '#161b22' : colors, borderWidth: type==='doughnut' ? 2 : 0, borderRadius: type==='bar' ? 5 : 0, maxBarThickness: 32 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      animation: { duration: 500, easing: 'easeOutQuart' },
+      animation: { duration: 600, easing: 'easeOutCubic' },
       plugins: {
-        legend: { display: type === 'doughnut', position: 'bottom', labels: { font: { size: 11, family: 'IBM Plex Mono' }, boxWidth: 10, padding: 10, generateLabels: chart => chart.data.labels.map((l, i) => ({ text: `${l}  ${data[i]}  (${total ? Math.round(data[i]/total*100) : 0}%)`, fillStyle: colors[i], strokeStyle: '#fff', lineWidth: 2, index: i })) } },
-        tooltip: { backgroundColor: 'rgba(26,26,24,0.9)', titleFont: { family: 'IBM Plex Sans', size: 12 }, bodyFont: { family: 'IBM Plex Mono', size: 12 }, padding: 10, callbacks: { label: c => ` ${c.raw}  (${total ? Math.round(c.raw/total*100) : 0}%)` } }
+        legend: {
+          display: type==='doughnut', position: 'bottom',
+          labels: { font: { size: 10, family: 'DM Mono' }, boxWidth: 8, padding: 12, color: '#7d8590',
+            generateLabels: ch => ch.data.labels.map((l,i) => ({
+              text: `${l}  ${data[i]}  (${total ? Math.round(data[i]/total*100) : 0}%)`,
+              fillStyle: colors[i], strokeStyle: 'transparent', lineWidth: 0, index: i
+            }))
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0d1117', borderColor: '#30363d', borderWidth: 1,
+          titleFont: { family: 'DM Sans', size: 12, weight: 500 },
+          bodyFont: { family: 'DM Mono', size: 11 }, padding: 10,
+          callbacks: { label: c => `  ${c.raw}  (${total ? Math.round(c.raw/total*100) : 0}%)` }
+        }
       },
-      scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10, family: 'IBM Plex Mono' } }, grid: { color: '#e8e5e0' } }, x: { ticks: { font: { size: 9, family: 'IBM Plex Mono' }, maxRotation: 35 }, grid: { display: false } } } : {},
-      ...(type === 'doughnut' ? { cutout: '55%' } : {})
+      scales: type==='bar' ? {
+        y: { beginAtZero: true, ticks: { stepSize:1, font:{size:9,family:'DM Mono'}, color:'#484f58' }, grid: { color:'rgba(48,54,61,0.6)' }, border:{color:'#21262d'} },
+        x: { ticks: { font:{size:9,family:'DM Mono'}, maxRotation:35, color:'#484f58' }, grid:{display:false}, border:{color:'#21262d'} }
+      } : {},
+      ...(type==='doughnut' ? { cutout:'58%' } : {})
     }
   });
 }
 
 function renderCharts(rows) {
-  const gc = {}; rows.forEach(r => { const g = r['Gender'] || 'Unknown'; gc[g] = (gc[g] || 0) + 1; });
-  makeChart('chartGender', 'doughnut', Object.keys(gc), Object.values(gc), Object.keys(gc).map(l => { const ll = l.toLowerCase(); if (ll === 'male') return '#1e3a5f'; if (ll === 'female') return '#c8440a'; return '#6b6860'; }));
+  const gc={};
+  rows.forEach(r=>{ const g=r['Gender']||'Unknown'; gc[g]=(gc[g]||0)+1; });
+  const gKeys = Object.keys(gc), gVals = Object.values(gc);
+  const gColors = gKeys.map(l=>{ const ll=l.toLowerCase(); return ll==='male'?'#388bfd':ll==='female'?'#f778ba':'#7d8590'; });
+  mkChart('cGender','doughnut',gKeys,gVals,gColors);
+  document.getElementById('ct-gender').textContent = rows.length + ' total';
 
-  const qc = {}; rows.forEach(r => { const q = r.Qual || 'Other'; qc[q] = (qc[q] || 0) + 1; });
-  const qs = Object.entries(qc).sort((a, b) => b[1] - a[1]).slice(0, 7);
-  makeChart('chartQual', 'bar', qs.map(e => e[0]), qs.map(e => e[1]), ['#1e3a5f','#2a5298','#3a6aaa','#4a7fbb','#1a6b3c','#c8440a','#b8860b']);
+  const qc={};
+  rows.forEach(r=>{ const q=r.Qual||'Other'; qc[q]=(qc[q]||0)+1; });
+  const qs = Object.entries(qc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('cQual','bar',qs.map(e=>e[0]),qs.map(e=>e[1]),['#388bfd','#3fb950','#f0883e','#a371f7','#d29922','#58a6ff','#56d364','#ffa657']);
+  document.getElementById('ct-qual').textContent = Object.keys(qc).length + ' types';
 
-  const dc = {}; rows.forEach(r => { let d = (r['Designation (if applicable)'] || 'N/A').trim(); if (d.length > 20) d = d.substring(0, 18) + '…'; dc[d] = (dc[d] || 0) + 1; });
-  const ds = Object.entries(dc).sort((a, b) => b[1] - a[1]).slice(0, 7);
-  makeChart('chartDesig', 'bar', ds.map(e => e[0]), ds.map(e => e[1]), ['#c8440a','#d45a1f','#e06f3a','#e88455','#f0a07a','#1a6b3c','#b8860b']);
+  const dc={};
+  rows.forEach(r=>{ let d=(r['Designation (if applicable)']||'N/A').trim(); if(d.length>18) d=d.substring(0,16)+'…'; dc[d]=(dc[d]||0)+1; });
+  const ds = Object.entries(dc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('cDesig','bar',ds.map(e=>e[0]),ds.map(e=>e[1]),['#f0883e','#ffa657','#d29922','#3fb950','#388bfd','#a371f7','#58a6ff','#56d364']);
+  document.getElementById('ct-desig').textContent = Object.keys(dc).length + ' roles';
 }
 
-/* ═══════════════════════════════════
+/* ════════════════════════════════════
+   FILTER PILLS
+   ════════════════════════════════════ */
+function buildQualPills(rows) {
+  const qc = {};
+  rows.forEach(r => { const q = r.Qual || 'Other'; qc[q] = (qc[q]||0)+1; });
+  const sorted = Object.entries(qc).sort((a,b)=>b[1]-a[1]);
+  const container = document.getElementById('qual-pills');
+  container.innerHTML = sorted.map(([q]) =>
+    `<span class="fpill" onclick="setFilter('qual','${esc(q)}',this)">${esc(q)}</span>`
+  ).join('');
+}
+
+function setFilter(type, value, el) {
+  activeFilters[type] = value;
+  // update active pill in its group
+  const parent = el.closest('.filter-bar');
+  parent.querySelectorAll('.fpill').forEach(p => {
+    const pVal = p.getAttribute('onclick').match(/'([^']+)',this/)?.[1];
+    if (pVal === value && p.getAttribute('onclick').includes(`'${type}'`)) p.classList.add('active');
+    else if (p.getAttribute('onclick').includes(`'${type}'`)) p.classList.remove('active');
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  filteredRows = allRows.filter(r => {
+    const g = (r['Gender']||'').toLowerCase();
+    const qual = r.Qual || 'Other';
+    if (activeFilters.gender !== 'all' && g !== activeFilters.gender) return false;
+    if (activeFilters.qual !== 'all' && qual !== activeFilters.qual) return false;
+    if (q) {
+      const haystack = Object.values(r).join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+/* ════════════════════════════════════
    TABLE
-   ═══════════════════════════════════ */
-function getPage() { const s = (currentPage - 1) * pageSize; return filteredRows.slice(s, s + pageSize); }
-function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+   ════════════════════════════════════ */
+function getPage() { const s=(currentPage-1)*pageSize; return filteredRows.slice(s,s+pageSize); }
+function totalPages() { return Math.max(1, Math.ceil(filteredRows.length/pageSize)); }
 
 function renderTable() {
-  const container = document.getElementById('table-container');
-  document.getElementById('record-count').textContent = filteredRows.length + ' of ' + allRows.length;
-  if (!filteredRows.length) { container.innerHTML = '<div class="error-box"><i class="fas fa-search"></i>No matching records.<div class="hint">Try a different search term.</div></div>'; return; }
+  const container = document.getElementById('tbl-container');
+  document.getElementById('row-badge').textContent = filteredRows.length + ' / ' + allRows.length;
+
+  if (!filteredRows.length) {
+    container.innerHTML = `<div class="state-box"><i class="fas fa-magnifying-glass"></i><p>No records found</p><small>Try adjusting your search term or clearing the filters.</small></div>`;
+    return;
+  }
 
   const page = getPage();
+  const cols = dynamicCols.length ? dynamicCols : FIXED_COLS.filter(c => c.key !== 'Qual');
+
   let h = '<div class="table-wrap"><table><thead><tr>';
-  COLS.forEach((c, i) => { const sorted = sortCol === i; h += `<th style="width:${c.w}" class="${sorted?'sorted':''}" onclick="onSort(${i})">${c.label}<span class="sort-icon">${sorted ? (sortDir===1?'▲':'▼') : '⇅'}</span></th>`; });
+  cols.forEach((c,i) => {
+    const sorted = sortCol === i;
+    const dir = sorted ? (sortDir===1?'▲':'▼') : '⇅';
+    h += `<th style="width:${c.w||'auto'}" class="${sorted?'sorted':''}" onclick="onSort(${i})">${c.label}<span class="si">${dir}</span></th>`;
+  });
   h += '</tr></thead><tbody>';
-  page.forEach(r => {
+
+  page.forEach((r, idx) => {
+    const rowNum = (currentPage-1)*pageSize + idx + 1;
     const g = (r['Gender']||'').toLowerCase();
-    const gb = g === 'female' ? 'badge-f' : g === 'male' ? 'badge-m' : 'badge-other';
-    const ts = r['Timestamp'] ? r['Timestamp'].replace('T',' ').split('.')[0].substring(0,16) : '—';
-    h += `<tr>
-      <td><strong>${esc(r['Full Name']||'—')}</strong></td>
-      <td style="color:var(--muted)">${esc(r['Father Name']||'—')}</td>
-      <td><span class="badge ${gb}">${esc(r['Gender']||'—')}</span></td>
-      <td><span class="badge badge-qual">${esc(r.Qual||'—')}</span></td>
-      <td>${esc(r['Designation (if applicable)']||'—')}</td>
-      <td style="color:var(--accent);font-family:var(--mono);font-size:12px">${esc(r['Email']||'—')}</td>
-      <td style="font-family:var(--mono);font-size:12px">${esc(r['Contact Number']||'—')}</td>
-      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${ts}</td>
-    </tr>`;
+    const gBadge = g==='male'?'bm':g==='female'?'bf':'bo';
+    const gIcon = g==='male'?'fa-mars':g==='female'?'fa-venus':'fa-genderless';
+    const ts = r['Timestamp'] ? r['Timestamp'].replace('T',' ').replace(/\.\d+Z?$/,'').substring(0,16) : '—';
+
+    h += '<tr>';
+    cols.forEach(c => {
+      const key = c.key;
+      let val = r[key] || '—';
+      let cell = '';
+
+      if (key === '#') {
+        cell = `<td class="td-sno">${rowNum}</td>`;
+      } else if (key === 'Timestamp') {
+        cell = `<td class="td-ts">${esc(ts)}</td>`;
+      } else if (key === 'Full Name') {
+        cell = `<td class="td-name">${esc(val)}</td>`;
+      } else if (key === 'Father Name') {
+        cell = `<td class="td-father">${esc(val)}</td>`;
+      } else if (key === 'Gender') {
+        cell = `<td><span class="badge ${gBadge}"><i class="fas ${gIcon}" style="font-size:9px"></i>${esc(r['Gender']||'—')}</span></td>`;
+      } else if (key === 'Qual') {
+        const qual = r.Qual || '—';
+        cell = `<td><span class="badge bq">${esc(qual)}</span></td>`;
+      } else if (key === 'Highest/Current Qualification (with Branch /domain as applicable)') {
+        cell = `<td title="${esc(val)}" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12px">${esc(val)}</td>`;
+      } else if (key === 'Designation (if applicable)') {
+        const desig = (r['Designation (if applicable)'] || '').trim();
+        cell = desig && desig !== 'N/A' && desig !== '—'
+          ? `<td><span class="badge bd">${esc(desig.length>22 ? desig.substring(0,20)+'…' : desig)}</span></td>`
+          : `<td><span class="badge bn">N/A</span></td>`;
+      } else if (key === 'Email') {
+        cell = `<td class="td-email" title="${esc(val)}">${esc(val)}</td>`;
+      } else if (key === 'Contact Number') {
+        cell = `<td class="td-phone">${esc(val)}</td>`;
+      } else {
+        cell = `<td style="color:var(--muted);font-size:12px" title="${esc(val)}">${esc(val.length>24?val.substring(0,22)+'…':val)}</td>`;
+      }
+      h += cell;
+    });
+    h += '</tr>';
   });
   h += '</tbody></table></div>';
 
-  const tp = totalPages(), start = (currentPage-1)*pageSize+1, end = Math.min(currentPage*pageSize, filteredRows.length);
-  h += `<div class="pagination"><div style="display:flex;align-items:center;gap:8px;">
-    <span>Rows ${start}–${end} of ${filteredRows.length}</span>
-    <select class="per-page-select" onchange="changePageSize(this.value)" aria-label="Rows per page">
-      ${PAGE_SIZES.map(s => `<option value="${s}" ${s===pageSize?'selected':''}>${s}/page</option>`).join('')}
-    </select></div><div class="page-btns">
-    <button class="page-btn" onclick="goPage(1)" ${currentPage===1?'disabled':''}><i class="fas fa-angle-double-left"></i></button>
-    <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-angle-left"></i></button>`;
+  // pagination
+  const tp = totalPages();
+  const start = (currentPage-1)*pageSize+1, end = Math.min(currentPage*pageSize, filteredRows.length);
   let pS = Math.max(1, currentPage-2), pE = Math.min(tp, pS+4);
   if (pE-pS < 4) pS = Math.max(1, pE-4);
-  for (let p = pS; p <= pE; p++) h += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-  h += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===tp?'disabled':''}><i class="fas fa-angle-right"></i></button>
-    <button class="page-btn" onclick="goPage(${tp})" ${currentPage===tp?'disabled':''}><i class="fas fa-angle-double-right"></i></button>
-  </div></div>`;
+  let pgBtns = '';
+  for (let p = pS; p <= pE; p++) pgBtns += `<button class="pg ${p===currentPage?'cur':''}" onclick="goPage(${p})">${p}</button>`;
+
+  h += `<div class="paginator">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span>Rows ${start}–${end} of ${filteredRows.length}</span>
+      <select class="per-page" onchange="changePS(this.value)">
+        ${PAGE_SIZES.map(s=>`<option value="${s}" ${s===pageSize?'selected':''}>${s}/page</option>`).join('')}
+      </select>
+    </div>
+    <div class="page-btns">
+      <button class="pg" onclick="goPage(1)" ${currentPage===1?'disabled':''}><i class="fas fa-angles-left"></i></button>
+      <button class="pg" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-angle-left"></i></button>
+      ${pgBtns}
+      <button class="pg" onclick="goPage(${currentPage+1})" ${currentPage===tp?'disabled':''}><i class="fas fa-angle-right"></i></button>
+      <button class="pg" onclick="goPage(${tp})" ${currentPage===tp?'disabled':''}><i class="fas fa-angles-right"></i></button>
+    </div>
+  </div>`;
+
   container.innerHTML = h;
 }
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
+function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 function onSort(i) {
-  if (sortCol === i) sortDir *= -1; else { sortCol = i; sortDir = 1; }
-  const key = COLS[i].key;
-  filteredRows.sort((a, b) => { const va = (a[key]||'').toLowerCase(), vb = (b[key]||'').toLowerCase(); return va < vb ? -1*sortDir : va > vb ? 1*sortDir : 0; });
-  currentPage = 1; renderTable();
+  if(sortCol===i) sortDir*=-1; else { sortCol=i; sortDir=1; }
+  const key = dynamicCols[i]?.key || FIXED_COLS[i]?.key;
+  filteredRows.sort((a,b)=>{ const va=(a[key]||'').toLowerCase(), vb=(b[key]||'').toLowerCase(); return va<vb?-1*sortDir:va>vb?1*sortDir:0; });
+  currentPage=1; renderTable();
 }
-function goPage(p) { p = Math.max(1, Math.min(p, totalPages())); if (p === currentPage) return; currentPage = p; renderTable(); document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-function changePageSize(v) { pageSize = parseInt(v, 10); currentPage = 1; renderTable(); }
+function goPage(p) { p=Math.max(1,Math.min(p,totalPages())); if(p===currentPage)return; currentPage=p; renderTable(); document.querySelector('.table-section').scrollIntoView({behavior:'smooth',block:'start'}); }
+function changePS(v) { pageSize=parseInt(v,10); currentPage=1; renderTable(); }
+function onSearch() { applyFilters(); }
+function clearSearch() { document.getElementById('search').value=''; applyFilters(); }
 
-function onSearch() {
-  const q = document.getElementById('search-input').value.toLowerCase().trim();
-  filteredRows = q ? allRows.filter(r =>
-    (r['Full Name']||'').toLowerCase().includes(q) || (r['Father Name']||'').toLowerCase().includes(q) ||
-    (r['Email']||'').toLowerCase().includes(q) || (r['Designation (if applicable)']||'').toLowerCase().includes(q) ||
-    (r['Contact Number']||'').includes(q) || (r.Qual||'').toLowerCase().includes(q) || (r['Gender']||'').toLowerCase().includes(q)
-  ) : [...allRows];
-  currentPage = 1; renderTable();
-}
-function clearSearch() { document.getElementById('search-input').value = ''; onSearch(); }
-
-/* ═══════════════════════════════════
+/* ════════════════════════════════════
    EXPORT
-   ═══════════════════════════════════ */
+   ════════════════════════════════════ */
 function exportCSV() {
-  if (!allRows.length) { showToast('No data to export'); return; }
-  const hdrs = Object.keys(allRows[0]).filter(k => k !== 'Qual');
-  let csv = hdrs.map(h => `"${h}"`).join(',') + '\n';
-  allRows.forEach(r => { csv += hdrs.map(h => `"${(r[h]||'').replace(/"/g,'""')}"`).join(',') + '\n'; });
+  if (!allRows.length) { toast('No data to export'); return; }
+  const hdrs = dynamicCols.map(c=>c.key).filter(k=>k!=='#');
+  let csv = hdrs.map(h=>`"${h}"`).join(',') + '\n';
+  allRows.forEach(r => { csv += hdrs.map(h=>`"${(r[h]||'').replace(/"/g,'""')}"`).join(',') + '\n'; });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
   a.download = `FSP_Registrations_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); showToast('Exported ' + allRows.length + ' records');
+  a.click(); toast('Exported ' + allRows.length + ' records');
 }
 
-/* ═══════════════════════════════════
-   UTILITIES
-   ═══════════════════════════════════ */
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
-function startCountdown() {
-  countdownVal = REFRESH_SEC; if (countdownId) clearInterval(countdownId);
-  const el = document.getElementById('countdown'); el.textContent = `Refresh in ${countdownVal}s`;
-  countdownId = setInterval(() => { countdownVal--; if (countdownVal <= 0) clearInterval(countdownId); else el.textContent = `Refresh in ${countdownVal}s`; }, 1000);
-}
-function flashStat(id) { const el = document.getElementById(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
-function updateSourceTag() {
-  const tag = document.getElementById('source-tag');
-  tag.textContent = 'CSV /pub'; tag.className = 'source-tag csv';
+/* ════════════════════════════════════
+   TOAST
+   ════════════════════════════════════ */
+let toastTmr;
+function toast(msg) {
+  clearTimeout(toastTmr);
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast').classList.add('show');
+  toastTmr = setTimeout(()=>document.getElementById('toast').classList.remove('show'), 3000);
 }
 
-/* ═══════════════════════════════════
+/* ════════════════════════════════════
    FETCH
-   ═══════════════════════════════════ */
+   ════════════════════════════════════ */
 async function fetchData() {
   const btn = document.getElementById('refresh-btn');
-  btn.classList.add('loading-state');
-  document.getElementById('status-msg').textContent = 'Fetching latest data…';
-  document.getElementById('last-update').textContent = 'Refreshing…';
-  document.getElementById('pulse-dot').classList.remove('error');
-  updateSourceTag();
+  const icon = document.getElementById('refresh-icon');
+  btn.classList.add('loading');
+  icon.classList.add('spin');
 
   try {
-    const url = PUB_URL + '&_t=' + Date.now();
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(PUB_URL + '&_t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    if (text.length < 10) throw new Error('Empty response');
+    if (text.length < 20) throw new Error('Empty response from Google Sheets');
 
-    allRows = parseCSV(text);
-    if (!allRows.length) throw new Error('Parsed 0 rows — check headers match expected columns');
+    const { headers, data } = parseCSV(text);
+    if (!data.length) throw new Error('No rows parsed — ensure the sheet is published and has data');
 
-    onSearch();
+    allRows = data;
 
+    // Build dynamic columns from actual sheet headers
+    dynamicCols = [
+      { key: '#', label: '#', w: '48px', cls: 'td-sno' },
+      ...headers.map(h => {
+        const fixed = FIXED_COLS.find(c => c.key === h);
+        return fixed || { key: h, label: h.length > 20 ? h.substring(0,18)+'…' : h, w: '150px', cls: '' };
+      }),
+      { key: 'Qual', label: 'Qual', w: '100px', cls: '' }
+    ].filter((c,i,arr) => arr.findIndex(x=>x.key===c.key)===i); // dedupe
+
+    // Apply current filters & re-render
+    activeFilters = { gender: 'all', qual: 'all' };
+    // reset pills
+    document.querySelectorAll('.filter-bar .fpill').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.filter-bar .fpill').forEach(p => {
+      if (p.getAttribute('onclick')?.includes("'all'")) p.classList.add('active');
+    });
+    buildQualPills(allRows);
+    filteredRows = [...allRows];
+    currentPage = 1;
+
+    // Stats
     const total = allRows.length;
-    const males = allRows.filter(r => (r['Gender']||'').toLowerCase() === 'male').length;
-    const females = allRows.filter(r => (r['Gender']||'').toLowerCase() === 'female').length;
+    const males = allRows.filter(r => (r['Gender']||'').toLowerCase()==='male').length;
+    const females = allRows.filter(r => (r['Gender']||'').toLowerCase()==='female').length;
     const desigs = new Set(allRows.map(r => (r['Designation (if applicable)']||'').trim().toLowerCase()).filter(Boolean)).size;
+    const quals = new Set(allRows.map(r => r.Qual || 'Other')).size;
 
-    document.getElementById('s-total').textContent  = total;   flashStat('s-total');
-    document.getElementById('s-male').textContent   = males;   flashStat('s-male');
-    document.getElementById('s-female').textContent = females; flashStat('s-female');
-    document.getElementById('s-desig').textContent  = desigs;  flashStat('s-desig');
+    const flash = id => { const el=document.getElementById(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); };
+    document.getElementById('k-total').textContent = total;  flash('k-total');
+    document.getElementById('k-male').textContent = males;   flash('k-male');
+    document.getElementById('k-female').textContent = females; flash('k-female');
+    document.getElementById('k-desig').textContent = desigs; flash('k-desig');
+    document.getElementById('k-qual').textContent = quals;   flash('k-qual');
 
     const delta = total - prevTotal;
-    const dEl = document.getElementById('s-total-delta');
-    if (prevTotal > 0) dEl.innerHTML = delta > 0 ? `<span class="stat-delta up">+${delta} new</span>` : delta === 0 ? `<span class="stat-delta same">No change</span>` : `<span class="stat-delta" style="color:var(--accent2)">${delta}</span>`;
-    else dEl.innerHTML = '';
+    if (prevTotal > 0 && delta !== 0) {
+      document.getElementById('k-delta').innerHTML = `<span class="delta ${delta>0?'up':'same'}">${delta>0?'+':''}${delta} since last fetch &nbsp;</span>`;
+    } else {
+      document.getElementById('k-delta').innerHTML = '';
+    }
     prevTotal = total;
 
-    document.getElementById('s-male-pct').textContent   = total ? Math.round(males/total*100) + '% of total' : '';
-    document.getElementById('s-female-pct').textContent = total ? Math.round(females/total*100) + '% of total' : '';
+    document.getElementById('k-male-pct').textContent = total ? Math.round(males/total*100)+'% of total' : '';
+    document.getElementById('k-female-pct').textContent = total ? Math.round(females/total*100)+'% of total' : '';
 
-    const ts = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-    document.getElementById('last-update').textContent = 'Updated ' + ts;
-    document.getElementById('status-msg').textContent  = 'Live data · ' + total + ' registrations';
-    document.getElementById('total-count').textContent  = total + ' records';
+    const ts = new Date().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('last-sync').textContent = 'Synced ' + ts;
 
     renderCharts(allRows);
     renderTable();
-    startCountdown();
+    toast('Loaded ' + total + ' registrations successfully');
 
-  } catch (err) {
-    document.getElementById('status-msg').textContent = '⚠ Could not fetch data';
-    document.getElementById('last-update').textContent = 'Error';
-    document.getElementById('pulse-dot').classList.add('error');
-
+  } catch(err) {
+    document.getElementById('last-sync').textContent = '⚠ Fetch failed';
     if (!allRows.length) {
-      document.getElementById('table-container').innerHTML = `
-        <div class="error-box">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>Failed: ${esc(err.message)}</span>
-          <div class="hint">Ensure "Publish to web" is active in Google Sheets (File → Share → Publish to web → CSV).<br>Note: /pub has a 5–15 min CDN cache. For instant updates, use an Apps Script web app.</div>
-          <button class="btn" style="color:var(--accent);border-color:var(--accent);margin-top:8px;" onclick="fetchData()">
-            <i class="fas fa-redo"></i> Retry
+      document.getElementById('tbl-container').innerHTML = `
+        <div class="state-box">
+          <i class="fas fa-triangle-exclamation" style="color:var(--red);opacity:1;"></i>
+          <p style="color:var(--red)">Failed to load data</p>
+          <small>${esc(err.message)}<br><br>
+            Make sure the Google Sheet is published via <strong>File → Share → Publish to web → CSV</strong>.
+            The /pub URL may have a 5–15 min cache delay for new data.
+          </small>
+          <button class="hbtn hbtn-primary" onclick="fetchData()" style="margin-top:8px;">
+            <i class="fas fa-rotate-right"></i> Retry
           </button>
         </div>`;
     }
-    startCountdown();
+    toast('Error: ' + err.message);
   }
-  btn.classList.remove('loading-state');
-}
 
-/* ═══════════════════════════════════
-   BOOT
-   ═══════════════════════════════════ */
-fetchData();
-setInterval(fetchData, REFRESH_SEC * 1000);
+  btn.classList.remove('loading');
+  icon.classList.remove('spin');
+}
 </script>
 </body>
 </html>
