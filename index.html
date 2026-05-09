@@ -1,1 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOI Punjab Police — FSP Training Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #ddd9d0;
+    --text: #1a1a18;
+    --muted: #6b6860;
+    --accent: #1e3a5f;
+    --accent-light: #2a5298;
+    --accent2: #c8440a;
+    --accent2-light: #e06f3a;
+    --accent3: #1a6b3c;
+    --gold: #b8860b;
+    --danger: #b91c1c;
+    --font: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    background: var(--accent); color: #fff; padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid var(--accent2); position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(30,58,95,0.25);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .emblem {
+    width: 46px; height: 46px; background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.3); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .header-title { font-size: 16px; font-weight: 600; letter-spacing: 0.01em; }
+  .header-sub { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; font-weight: 300; letter-spacing: 0.05em; text-transform: uppercase; }
+  .header-right { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer; padding: 6px 14px; border-radius: 6px;
+    font-size: 12px; font-family: var(--mono); color: rgba(255,255,255,0.8);
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.4); color: #fff; }
+  .btn:active { transform: scale(0.97); }
+  .btn.loading-state { pointer-events: none; opacity: 0.5; }
+
+  .live-badge {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 11px; font-family: var(--mono); color: rgba(255,255,255,0.75); white-space: nowrap;
+  }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%; background: #4caf50; flex-shrink: 0;
+    box-shadow: 0 0 0 0 rgba(76,175,80,0.6); animation: pulse 2s infinite;
+  }
+  .pulse.error { background: var(--danger); box-shadow: 0 0 0 0 rgba(185,28,28,0.5); animation-name: pulse-error; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(76,175,80,0.6); } 70% { box-shadow: 0 0 0 8px rgba(76,175,80,0); } 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); } }
+  @keyframes pulse-error { 0% { box-shadow: 0 0 0 0 rgba(185,28,28,0.5); } 70% { box-shadow: 0 0 0 6px rgba(185,28,28,0); } 100% { box-shadow: 0 0 0 0 rgba(185,28,28,0); } }
+
+  .main { padding: 24px 32px 32px; max-width: 1440px; margin: 0 auto; }
+
+  .status-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 8px;
+    font-size: 12px; font-family: var(--mono); color: var(--muted);
+  }
+  .status-left { display: flex; align-items: center; gap: 12px; }
+  .countdown { color: var(--accent); font-weight: 500; }
+
+  .source-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    font-family: var(--mono); font-weight: 500; letter-spacing: 0.03em;
+  }
+  .source-tag.json  { background: #d1fae5; color: #064e3b; }
+  .source-tag.csv   { background: #fef3c7; color: #92400e; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; position: relative; overflow: hidden;
+    box-shadow: var(--shadow); transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .stat-card.blue::before   { background: var(--accent); }
+  .stat-card.orange::before { background: var(--accent2); }
+  .stat-card.green::before  { background: var(--accent3); }
+  .stat-card.gold::before   { background: var(--gold); }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
+  .stat-value { font-size: 30px; font-weight: 700; font-family: var(--mono); line-height: 1; transition: all 0.3s; }
+  .stat-card.blue .stat-value   { color: var(--accent); }
+  .stat-card.orange .stat-value { color: var(--accent2); }
+  .stat-card.green .stat-value  { color: var(--accent3); }
+  .stat-card.gold .stat-value   { color: var(--gold); }
+  .stat-value.flash { animation: flash-val 0.6s ease; }
+  @keyframes flash-val { 0% { opacity: 0.3; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.06); } 100% { transform: scale(1); } }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+  .stat-delta { font-weight: 600; font-size: 11px; }
+  .stat-delta.up   { color: var(--accent3); }
+  .stat-delta.same { color: var(--muted); }
+
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
+  .chart-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+  .chart-title i { font-size: 12px; opacity: 0.5; }
+
+  .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; }
+  .table-toolbar { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .table-toolbar-left { display: flex; align-items: center; gap: 10px; }
+  .table-toolbar-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+  .record-count { font-size: 11px; font-family: var(--mono); color: var(--accent); background: rgba(30,58,95,0.06); padding: 2px 8px; border-radius: 4px; }
+  .table-toolbar-right { display: flex; align-items: center; gap: 8px; }
+  .search-box {
+    padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text);
+    width: 260px; outline: none; transition: border-color 0.15s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%236b6860' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: 10px center;
+  }
+  .search-box:focus { border-color: var(--accent); background-color: #fff; }
+  .search-box::placeholder { color: #aaa; }
+  .icon-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg); cursor: pointer; color: var(--muted); font-size: 13px; transition: all 0.15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); background: #fff; }
+  .icon-btn:active { transform: scale(0.95); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--surface2); padding: 10px 14px; text-align: left;
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; cursor: pointer; user-select: none; transition: background 0.1s;
+  }
+  th:hover { background: #e8e5df; }
+  th .sort-icon { margin-left: 4px; font-size: 9px; opacity: 0.4; }
+  th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+  td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text);
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(30,58,95,0.02); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--mono); }
+  .badge-m     { background: #dbeafe; color: #1e3a8a; }
+  .badge-f     { background: #fce7f3; color: #9d174d; }
+  .badge-other { background: #f3f4f6; color: #4b5563; }
+  .badge-qual  { background: #d1fae5; color: #064e3b; }
+
+  .pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted); font-family: var(--mono); flex-wrap: wrap; gap: 8px;
+  }
+  .page-btns { display: flex; gap: 4px; }
+  .page-btn {
+    padding: 5px 10px; border: 1px solid var(--border); border-radius: 5px;
+    background: var(--surface); cursor: pointer; font-size: 12px;
+    font-family: var(--mono); color: var(--muted); transition: all 0.15s;
+  }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .page-btn:disabled { opacity: 0.35; pointer-events: none; }
+  .per-page-select {
+    padding: 4px 8px; border: 1px solid var(--border); border-radius: 5px;
+    font-size: 12px; font-family: var(--mono); background: var(--bg); color: var(--text); cursor: pointer;
+  }
+
+  .loading { display: flex; align-items: center; justify-content: center; height: 180px; color: var(--muted); font-size: 13px; font-family: var(--mono); gap: 10px; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; height: 180px; color: var(--muted); font-size: 13px;
+    font-family: var(--mono); text-align: center; padding: 20px;
+  }
+  .error-box i { font-size: 28px; color: var(--accent2); }
+  .error-box .hint { font-size: 11px; color: #999; max-width: 460px; line-height: 1.6; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--accent); color: #fff; padding: 10px 18px; border-radius: 8px;
+    font-size: 13px; font-family: var(--mono); box-shadow: 0 6px 20px rgba(30,58,95,0.3);
+    transform: translateY(80px); opacity: 0; transition: all 0.3s ease; z-index: 200;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  footer { text-align: center; padding: 18px; font-size: 11px; font-family: var(--mono); color: var(--muted); border-top: 1px solid var(--border); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px) {
+    header { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+    .header-title { font-size: 14px; }
+    .main { padding: 16px; }
+    .charts-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .search-box { width: 100%; }
+    .table-toolbar { flex-direction: column; align-items: flex-start; }
+    .table-toolbar-right { width: 100%; }
+    .hide-mobile { display: none; }
+  }
+  @media print {
+    header { position: static; box-shadow: none; }
+    .btn, .icon-btn, .search-box, .pagination, .live-badge { display: none !important; }
+    .stat-card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="emblem"><i class="fas fa-balance-scale"></i></div>
+    <div>
+      <div class="header-title">FutureSkills PRIME — Training Dashboard</div>
+      <div class="header-sub">Bureau of Investigation · Punjab Police · NIELIT Ropar</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn" onclick="exportCSV()" title="Download CSV">
+      <i class="fas fa-download"></i><span class="hide-mobile">Export</span>
+    </button>
+    <button class="btn" id="refresh-btn" onclick="fetchData()" title="Refresh now">
+      <i class="fas fa-sync-alt"></i><span class="hide-mobile">Refresh</span>
+    </button>
+    <div class="live-badge">
+      <div class="pulse" id="pulse-dot"></div>
+      <span id="last-update">Loading…</span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="status-bar">
+    <div class="status-left">
+      <span id="status-msg">Connecting…</span>
+      <span class="source-tag csv" id="source-tag">CSV /pub</span>
+      <span class="countdown" id="countdown"></span>
+    </div>
+    <span id="total-count" style="font-weight:500;"></span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Registrations</div>
+      <div class="stat-value" id="s-total">—</div>
+      <div class="stat-sub"><span id="s-total-delta"></span>All participants</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Male</div>
+      <div class="stat-value" id="s-male">—</div>
+      <div class="stat-sub"><span id="s-male-pct"></span></div>
+    </div>
+    <div class="stat-card orange">
+      <div class="stat-label">Female</div>
+      <div class="stat-value" id="s-female">—</div>
+      <div class="stat-sub"><span id="s-female-pct"></span></div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Designations</div>
+      <div class="stat-value" id="s-desig">—</div>
+      <div class="stat-sub">unique roles</div>
+    </div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title"><i class="fas fa-venus-mars"></i> Gender Split</div>
+      <div style="position:relative;height:210px;"><canvas id="chartGender"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><i class="fas fa-graduation-cap"></i> Qualification</div>
+      <div style="position:relative;height:210px;"><canvas id="chartQual"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title"><i class="fas fa-id-badge"></i> Designation</div>
+      <div style="position:relative;height:210px;"><canvas id="chartDesig"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <div class="table-toolbar-left">
+        <span class="table-toolbar-title">All Registrations</span>
+        <span class="record-count" id="record-count">0</span>
+      </div>
+      <div class="table-toolbar-right">
+        <input class="search-box" id="search-input" type="text"
+               placeholder="Search name, email, designation…"
+               oninput="onSearch()" aria-label="Search registrations">
+        <button class="icon-btn" onclick="clearSearch()" title="Clear search">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+    <div id="table-container">
+      <div class="loading"><div class="spinner"></div>Loading data…</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  Data source: Google Sheets (Live) · Auto-refresh every 30s · NIELIT Ropar · FutureSkills PRIME · MeitY · NASSCOM
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   DATA SOURCE CONFIGURATION
+
+   Option A — Apps Script JSON (RECOMMENDED, zero cache):
+   Paste your Apps Script web app URL here and set
+   DATA_FORMAT to 'json'.
+
+   Option B — Google Visualization gviz (faster than /pub):
+   Uses the sheet ID with /gviz/tq endpoint. Needs
+   "Anyone with link → Viewer" sharing. ~15s cache.
+
+   Option C — /pub CSV (fallback, 5–15 min cache):
+   Original publish URL. Slow cache but no sharing needed.
+   ═══════════════════════════════════════════════════════════ */
+
+const DATA_FORMAT = 'gviz';   // ← Change to 'json' or 'gviz' or 'pub'
+
+/* ── Option A: Apps Script URL (set DATA_FORMAT = 'json') ── */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+/* ── Option B: gviz URL (set DATA_FORMAT = 'gviz') ── */
+const SHEET_ID = '1X_Chv3xMYSZPQokTfH9ft5bI4Pba1fN1H-Uxj8xSXqc';
+const GVIZ_URL  = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+/* ── Option C: /pub URL (set DATA_FORMAT = 'pub') ── */
+const PUB_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQNfxa5VZ-8AVpLuwKLqFcfGhpgd3blrWz9UzxNozWBVjItXNBjlkvZzPXnNF06VKwIwjUmYvK_FTyf/pub?output=csv';
+
+
+/* Resolve the active URL based on format choice */
+function getDataSourceURL() {
+  if (DATA_FORMAT === 'json') return APPS_SCRIPT_URL;
+  if (DATA_FORMAT === 'gviz') return GVIZ_URL;
+  return PUB_URL;
+}
+
+const REFRESH_SEC = 30;  // shorter interval with gviz/json
+const PAGE_SIZES  = [25, 50, 100, 200];
+
+/* ── State ── */
+let allRows = [], filteredRows = [], prevTotal = 0, charts = {};
+let sortCol = -1, sortDir = 1, currentPage = 1, pageSize = 50;
+let countdownId = null, countdownVal = REFRESH_SEC;
+
+const COLS = [
+  { key: 'Full Name',                              label: 'Name',          w: '170px' },
+  { key: 'Father Name',                            label: 'Father',        w: '130px' },
+  { key: 'Gender',                                 label: 'Gender',        w: '70px'  },
+  { key: 'Qual',                                   label: 'Qualification', w: '150px' },
+  { key: 'Designation (if applicable)',            label: 'Designation',   w: '160px' },
+  { key: 'Email',                                  label: 'Email',         w: '190px' },
+  { key: 'Contact Number',                         label: 'Contact',       w: '120px' },
+  { key: 'Timestamp',                              label: 'Registered',    w: '110px' },
+];
+
+/* ═══════════════════════════════════
+   PARSERS
+   ═══════════════════════════════════ */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], next = text[i + 1];
+    if (inQ) {
+      if (c === '"') { if (next === '"') { field += '"'; i++; } else inQ = false; }
+      else field += c;
+    } else {
+      if (c === '"') inQ = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r' && next === '\n') { i++; row.push(field); field = ''; rows.push(row); row = []; }
+      else if (c === '\n') { row.push(field); field = ''; rows.push(row); row = []; }
+      else field += c;
+    }
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim().replace(/^"|"$/g, ''));
+  const ni = headers.indexOf('Full Name');
+  return rows.slice(1)
+    .filter(r => r.length >= headers.length && (r[ni >= 0 ? ni : 0] || '').trim().length > 0)
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (r[i] || '').trim().replace(/^"|"$/g, ''));
+      obj.Qual = normalizeQual(obj['Highest/Current Qualification (with Branch /domain as applicable)'] || '');
+      return obj;
+    });
+}
+
+function parseJSON(text) {
+  try {
+    const arr = JSON.parse(text);
+    if (!Array.isArray(arr)) return [];
+    return arr.map(obj => {
+      const o = {};
+      for (const k in obj) o[k] = String(obj[k] ?? '');
+      o.Qual = normalizeQual(o['Highest/Current Qualification (with Branch /domain as applicable)'] || '');
+      return o;
+    }).filter(o => (o['Full Name'] || '').trim().length > 0);
+  } catch { return []; }
+}
+
+function normalizeQual(raw) {
+  const s = raw.toLowerCase();
+  if (/m\.?tech/.test(s))     return 'M.Tech';
+  if (/m\.?sc/.test(s))      return 'M.Sc';
+  if (/mca/.test(s))         return 'MCA';
+  if (/m\.?a(?!\w)/.test(s)) return 'M.A';
+  if (/m\.?com/.test(s))     return 'M.Com';
+  if (/mba/.test(s))         return 'MBA';
+  if (/llb/.test(s))         return 'LLB';
+  if (/phd/.test(s))         return 'PhD';
+  if (/b\.?tech/.test(s))    return 'B.Tech';
+  if (/b\.?sc/.test(s))      return 'B.Sc';
+  if (/bca/.test(s))         return 'BCA';
+  if (/b\.?a(?!\w)/.test(s)) return 'B.A';
+  if (/b\.?com/.test(s))     return 'B.Com';
+  if (/diploma/.test(s))     return 'Diploma';
+  if (/12th|12\s|\+2|intermediate|10\+2/.test(s)) return '12th';
+  if (/10th|10\s|matric/.test(s)) return '10th';
+  return raw.length > 20 ? raw.substring(0, 18) + '…' : (raw || 'Other');
+}
+
+/* ═══════════════════════════════════
+   CHARTS
+   ═══════════════════════════════════ */
+function makeChart(id, type, labels, data, colors) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx || !data.length) return;
+  const total = data.reduce((a, b) => a + b, 0);
+  charts[id] = new Chart(ctx, {
+    type, data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: type === 'doughnut' ? '#ffffff' : colors, borderWidth: type === 'doughnut' ? 2.5 : 1, borderRadius: type === 'bar' ? 4 : 0, maxBarThickness: 36 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 500, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: type === 'doughnut', position: 'bottom', labels: { font: { size: 11, family: 'IBM Plex Mono' }, boxWidth: 10, padding: 10, generateLabels: chart => chart.data.labels.map((l, i) => ({ text: `${l}  ${data[i]}  (${total ? Math.round(data[i]/total*100) : 0}%)`, fillStyle: colors[i], strokeStyle: '#fff', lineWidth: 2, index: i })) } },
+        tooltip: { backgroundColor: 'rgba(26,26,24,0.9)', titleFont: { family: 'IBM Plex Sans', size: 12 }, bodyFont: { family: 'IBM Plex Mono', size: 12 }, padding: 10, callbacks: { label: c => ` ${c.raw}  (${total ? Math.round(c.raw/total*100) : 0}%)` } }
+      },
+      scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10, family: 'IBM Plex Mono' } }, grid: { color: '#e8e5e0' } }, x: { ticks: { font: { size: 9, family: 'IBM Plex Mono' }, maxRotation: 35 }, grid: { display: false } } } : {},
+      ...(type === 'doughnut' ? { cutout: '55%' } : {})
+    }
+  });
+}
+
+function renderCharts(rows) {
+  const gc = {}; rows.forEach(r => { const g = r['Gender'] || 'Unknown'; gc[g] = (gc[g] || 0) + 1; });
+  makeChart('chartGender', 'doughnut', Object.keys(gc), Object.values(gc), Object.keys(gc).map(l => { const ll = l.toLowerCase(); if (ll === 'male') return '#1e3a5f'; if (ll === 'female') return '#c8440a'; return '#6b6860'; }));
+
+  const qc = {}; rows.forEach(r => { const q = r.Qual || 'Other'; qc[q] = (qc[q] || 0) + 1; });
+  const qs = Object.entries(qc).sort((a, b) => b[1] - a[1]).slice(0, 7);
+  makeChart('chartQual', 'bar', qs.map(e => e[0]), qs.map(e => e[1]), ['#1e3a5f','#2a5298','#3a6aaa','#4a7fbb','#1a6b3c','#c8440a','#b8860b']);
+
+  const dc = {}; rows.forEach(r => { let d = (r['Designation (if applicable)'] || 'N/A').trim(); if (d.length > 20) d = d.substring(0, 18) + '…'; dc[d] = (dc[d] || 0) + 1; });
+  const ds = Object.entries(dc).sort((a, b) => b[1] - a[1]).slice(0, 7);
+  makeChart('chartDesig', 'bar', ds.map(e => e[0]), ds.map(e => e[1]), ['#c8440a','#d45a1f','#e06f3a','#e88455','#f0a07a','#1a6b3c','#b8860b']);
+}
+
+/* ═══════════════════════════════════
+   TABLE
+   ═══════════════════════════════════ */
+function getPage() { const s = (currentPage - 1) * pageSize; return filteredRows.slice(s, s + pageSize); }
+function totalPages() { return Math.max(1, Math.ceil(filteredRows.length / pageSize)); }
+
+function renderTable() {
+  const container = document.getElementById('table-container');
+  document.getElementById('record-count').textContent = filteredRows.length + ' of ' + allRows.length;
+  if (!filteredRows.length) { container.innerHTML = '<div class="error-box"><i class="fas fa-search"></i>No matching records.<div class="hint">Try a different search term.</div></div>'; return; }
+
+  const page = getPage();
+  let h = '<div class="table-wrap"><table><thead><tr>';
+  COLS.forEach((c, i) => { const sorted = sortCol === i; h += `<th style="width:${c.w}" class="${sorted?'sorted':''}" onclick="onSort(${i})">${c.label}<span class="sort-icon">${sorted ? (sortDir===1?'▲':'▼') : '⇅'}</span></th>`; });
+  h += '</tr></thead><tbody>';
+  page.forEach(r => {
+    const g = (r['Gender']||'').toLowerCase();
+    const gb = g === 'female' ? 'badge-f' : g === 'male' ? 'badge-m' : 'badge-other';
+    const ts = r['Timestamp'] ? r['Timestamp'].replace('T',' ').split('.')[0].substring(0,16) : '—';
+    h += `<tr>
+      <td><strong>${esc(r['Full Name']||'—')}</strong></td>
+      <td style="color:var(--muted)">${esc(r['Father Name']||'—')}</td>
+      <td><span class="badge ${gb}">${esc(r['Gender']||'—')}</span></td>
+      <td><span class="badge badge-qual">${esc(r.Qual||'—')}</span></td>
+      <td>${esc(r['Designation (if applicable)']||'—')}</td>
+      <td style="color:var(--accent);font-family:var(--mono);font-size:12px">${esc(r['Email']||'—')}</td>
+      <td style="font-family:var(--mono);font-size:12px">${esc(r['Contact Number']||'—')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${ts}</td>
+    </tr>`;
+  });
+  h += '</tbody></table></div>';
+
+  const tp = totalPages(), start = (currentPage-1)*pageSize+1, end = Math.min(currentPage*pageSize, filteredRows.length);
+  h += `<div class="pagination"><div style="display:flex;align-items:center;gap:8px;">
+    <span>Rows ${start}–${end} of ${filteredRows.length}</span>
+    <select class="per-page-select" onchange="changePageSize(this.value)" aria-label="Rows per page">
+      ${PAGE_SIZES.map(s => `<option value="${s}" ${s===pageSize?'selected':''}>${s}/page</option>`).join('')}
+    </select></div><div class="page-btns">
+    <button class="page-btn" onclick="goPage(1)" ${currentPage===1?'disabled':''}><i class="fas fa-angle-double-left"></i></button>
+    <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}><i class="fas fa-angle-left"></i></button>`;
+  let pS = Math.max(1, currentPage-2), pE = Math.min(tp, pS+4);
+  if (pE-pS < 4) pS = Math.max(1, pE-4);
+  for (let p = pS; p <= pE; p++) h += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  h += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===tp?'disabled':''}><i class="fas fa-angle-right"></i></button>
+    <button class="page-btn" onclick="goPage(${tp})" ${currentPage===tp?'disabled':''}><i class="fas fa-angle-double-right"></i></button>
+  </div></div>`;
+  container.innerHTML = h;
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function onSort(i) {
+  if (sortCol === i) sortDir *= -1; else { sortCol = i; sortDir = 1; }
+  const key = COLS[i].key;
+  filteredRows.sort((a, b) => { const va = (a[key]||'').toLowerCase(), vb = (b[key]||'').toLowerCase(); return va < vb ? -1*sortDir : va > vb ? 1*sortDir : 0; });
+  currentPage = 1; renderTable();
+}
+function goPage(p) { p = Math.max(1, Math.min(p, totalPages())); if (p === currentPage) return; currentPage = p; renderTable(); document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function changePageSize(v) { pageSize = parseInt(v, 10); currentPage = 1; renderTable(); }
+
+function onSearch() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  filteredRows = q ? allRows.filter(r =>
+    (r['Full Name']||'').toLowerCase().includes(q) || (r['Father Name']||'').toLowerCase().includes(q) ||
+    (r['Email']||'').toLowerCase().includes(q) || (r['Designation (if applicable)']||'').toLowerCase().includes(q) ||
+    (r['Contact Number']||'').includes(q) || (r.Qual||'').toLowerCase().includes(q) || (r['Gender']||'').toLowerCase().includes(q)
+  ) : [...allRows];
+  currentPage = 1; renderTable();
+}
+function clearSearch() { document.getElementById('search-input').value = ''; onSearch(); }
+
+/* ═══════════════════════════════════
+   EXPORT
+   ═══════════════════════════════════ */
+function exportCSV() {
+  if (!allRows.length) { showToast('No data to export'); return; }
+  const hdrs = Object.keys(allRows[0]).filter(k => k !== 'Qual');
+  let csv = hdrs.map(h => `"${h}"`).join(',') + '\n';
+  allRows.forEach(r => { csv += hdrs.map(h => `"${(r[h]||'').replace(/"/g,'""')}"`).join(',') + '\n'; });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+  a.download = `FSP_Registrations_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); showToast('Exported ' + allRows.length + ' records');
+}
+
+/* ═══════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════ */
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2800); }
+function startCountdown() {
+  countdownVal = REFRESH_SEC; if (countdownId) clearInterval(countdownId);
+  const el = document.getElementById('countdown'); el.textContent = `Refresh in ${countdownVal}s`;
+  countdownId = setInterval(() => { countdownVal--; if (countdownVal <= 0) clearInterval(countdownId); else el.textContent = `Refresh in ${countdownVal}s`; }, 1000);
+}
+function flashStat(id) { const el = document.getElementById(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+function updateSourceTag() {
+  const tag = document.getElementById('source-tag');
+  if (DATA_FORMAT === 'json')     { tag.textContent = 'JSON Live'; tag.className = 'source-tag json'; }
+  else if (DATA_FORMAT === 'gviz') { tag.textContent = 'CSV /gviz'; tag.className = 'source-tag csv'; }
+  else                             { tag.textContent = 'CSV /pub';  tag.className = 'source-tag csv'; }
+}
+
+/* ═══════════════════════════════════
+   FETCH
+   ═══════════════════════════════════ */
+async function fetchData() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('loading-state');
+  document.getElementById('status-msg').textContent = 'Fetching latest data…';
+  document.getElementById('last-update').textContent = 'Refreshing…';
+  document.getElementById('pulse-dot').classList.remove('error');
+  updateSourceTag();
+
+  try {
+    const url = getDataSourceURL() + (DATA_FORMAT !== 'json' ? '&_t=' + Date.now() : '');
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+
+    if (text.length < 10) throw new Error('Empty response');
+
+    /* Parse based on format */
+    allRows = DATA_FORMAT === 'json' ? parseJSON(text) : parseCSV(text);
+    if (!allRows.length) throw new Error('Parsed 0 rows — check headers match expected columns');
+
+    onSearch();
+
+    const total = allRows.length;
+    const males = allRows.filter(r => (r['Gender']||'').toLowerCase() === 'male').length;
+    const females = allRows.filter(r => (r['Gender']||'').toLowerCase() === 'female').length;
+    const desigs = new Set(allRows.map(r => (r['Designation (if applicable)']||'').trim().toLowerCase()).filter(Boolean)).size;
+
+    document.getElementById('s-total').textContent  = total;   flashStat('s-total');
+    document.getElementById('s-male').textContent   = males;   flashStat('s-male');
+    document.getElementById('s-female').textContent = females; flashStat('s-female');
+    document.getElementById('s-desig').textContent  = desigs;  flashStat('s-desig');
+
+    const delta = total - prevTotal;
+    const dEl = document.getElementById('s-total-delta');
+    if (prevTotal > 0) dEl.innerHTML = delta > 0 ? `<span class="stat-delta up">+${delta} new</span>` : delta === 0 ? `<span class="stat-delta same">No change</span>` : `<span class="stat-delta" style="color:var(--accent2)">${delta}</span>`;
+    else dEl.innerHTML = '';
+    prevTotal = total;
+
+    document.getElementById('s-male-pct').textContent   = total ? Math.round(males/total*100) + '% of total' : '';
+    document.getElementById('s-female-pct').textContent = total ? Math.round(females/total*100) + '% of total' : '';
+
+    const ts = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('last-update').textContent = 'Updated ' + ts;
+    document.getElementById('status-msg').textContent  = 'Live data · ' + total + ' registrations';
+    document.getElementById('total-count').textContent  = total + ' records';
+
+    renderCharts(allRows);
+    renderTable();
+    startCountdown();
+
+  } catch (err) {
+    document.getElementById('status-msg').textContent = '⚠ Could not fetch data';
+    document.getElementById('last-update').textContent = 'Error';
+    document.getElementById('pulse-dot').classList.add('error');
+
+    if (!allRows.length) {
+      let hint = '';
+      if (DATA_FORMAT === 'gviz') hint = 'The /gviz endpoint requires "Anyone with the link → Viewer" sharing.<br>Go to Sheet → Share → General access → "Anyone with the link" → Viewer.<br><br>Or switch to <code>DATA_FORMAT = "pub"</code> in the script (slower cache, no sharing needed).';
+      else if (DATA_FORMAT === 'json') hint = 'Check your Apps Script web app URL is correct and deployed.<br>Ensure "Execute as: Me" and "Who has access: Anyone".';
+      else hint = 'Ensure "Publish to web" is active (File → Share → Publish to web → CSV).<br>Note: /pub has a 5–15 min CDN cache. For instant updates, use the Apps Script method.';
+
+      document.getElementById('table-container').innerHTML = `
+        <div class="error-box">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>Failed: ${esc(err.message)}</span>
+          <div class="hint">${hint}</div>
+          <button class="btn" style="color:var(--accent);border-color:var(--accent);margin-top:8px;" onclick="fetchData()">
+            <i class="fas fa-redo"></i> Retry
+          </button>
+        </div>`;
+    }
+    startCountdown();
+  }
+  btn.classList.remove('loading-state');
+}
+
+/* ═══════════════════════════════════
+   BOOT
+   ═══════════════════════════════════ */
+fetchData();
+setInterval(fetchData, REFRESH_SEC * 1000);
+</script>
+</body>
+</html>
